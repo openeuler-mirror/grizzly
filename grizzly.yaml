@@ -1,0 +1,5 @@
+git_url: http://grizzly.java.net/
+version_control: github
+src_repo: javaee/grizzly
+tag_prefix: "^"
+seperator: "."
