@@ -5,7 +5,7 @@
 %bcond_with jaxws
 Name:                grizzly
 Version:             2.3.24
-Release:             1
+Release:             2
 Summary:             Java NIO Server Framework
 License:             (CDDL or GPLv2 with exceptions) and BSD and ASL 2.0 and Public Domain
 URL:                 http://grizzly.java.net/
@@ -113,13 +113,16 @@ for m in http2 spdy ; do
   </archive>' modules/${m}
 done
 %mvn_package org.glassfish.grizzly.samples: samples
+# remove <scope>test</scope>
+%pom_xpath_remove "pom:dependency[pom:artifactId='junit']/pom:scope"
+%pom_xpath_remove "pom:dependency[pom:artifactId='mockito-all']/pom:scope" modules/http-server
 
 %build
 %mvn_build \
 %ifarch %{arm}
  -f -- \
 %else
- -- -Dmaven.test.failure.ignore=true \
+ --skipTests -- \
 %endif
  -Dmaven.local.depmap.file="%{_mavendepmapfragdir}/glassfish-servlet-api.xml"
 
@@ -129,6 +132,11 @@ done
   cd %{buildroot}%{_javadir}/%{name}
   ln -sf %{name}-framework.jar %{name}.jar
 )
+
+%check
+%ifnarch %{arm}
+xmvn test --batch-mode --offline verify -Dmaven.test.failure.ignore=true
+%endif
 
 %files -f .mfiles
 %{_javadir}/%{name}/%{name}.jar
@@ -141,5 +149,8 @@ done
 %license LICENSE.txt Grizzly_THIRDPARTYLICENSEREADME.txt
 
 %changelog
+* Tue Apr 27 2021 maminjie <maminjie1@huawei.com> - 2.3.24-2
+- Move the test to the %check stage
+
 * Fri Aug 28 2020 Anan Fu <fuanan3@huawei.com> - 2.3.24-1
 - package init
